@@ -54,11 +54,13 @@ const createEvent=async(req,res)=>{
 //get all events
 const getAllEvents=async(req,res)=>{
     try {
-        const allEvents=await Event.find({ startTime: { $gte: new Date() } })
-        if (!allEvents) {
+        //const allEvents=await Event.find({ startTime: { $gte: new Date() } })
+         const allEvents=await Event.find();
+
+        if (!allEvents || allEvents.length===0) {
             return res.status(401).json({message:"Events not found"})
         }
-        res.status(200).json({message:"Here is all Events",allEvents})
+      res.status(200).json({message:"Here is all Events",allEvents})
         
     } catch (error) {
         res.status(500).json({ message: error.message });

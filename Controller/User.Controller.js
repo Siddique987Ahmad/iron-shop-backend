@@ -2,14 +2,16 @@ const User=require('../Models/User.Model')
 const bcrypt=require('bcrypt')
 const jwt=require('jsonwebtoken')
 
-const generateToken=(userId)=>{
-    return jwt.sign({id:userId},process.env.JWT_SECRET,{expiresIn:'7d'})
+const generateToken=(user)=>{
+    return jwt.sign({_id:user._id,role: user.role},process.env.JWT_SECRET,{expiresIn:'7d'})
 }
 
 const registerUser=async(req,res)=>{
 
     try {
         const {userName,email,password,role}=req.body
+        const allowedRoles = ['user', 'realtor'];
+    const userRole = allowedRoles.includes(role) ? role : 'user';
         const existingUser=await User.findOne({email})
         if (existingUser) {
             return res.status(400).json({message:"user already existed"})
@@ -19,7 +21,7 @@ const registerUser=async(req,res)=>{
             userName,
             email,
             password,
-            role
+            role:userRole
         })
     if (!userCreate) {
         return res.status(401).json({message:"user not registered"})
@@ -42,8 +44,18 @@ const loginUser=async(req,res)=>{
       if (!isMatch) {
          return res.status(400).json({message:"invalid email or password"})
       }
- const token=generateToken(user._id)
-      return res.status(200).json({message:"login successfully",user,token})
+ const token=generateToken(user)
+ return res.status(200).json({
+    message: "login successfully",
+    user: {
+      _id: user._id,
+      userName: user.userName,
+      email: user.email,
+      role: user.role,
+    },
+    token,
+  });
+      //return res.status(200).json({message:"login successfully",user,token})
  
    } catch (error) {
     return res.status(500).json({message:"login invalid",error:error.message})
